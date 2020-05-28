@@ -65,12 +65,12 @@ public class BookKeeperMetrics implements AutoCloseable
   {
     final Iterable<String> metricsReporterNames = Splitter.on(",").trimResults().omitEmptyStrings().split(CacheConfig.getMetricsReporters(conf));
 
-    final Set<MetricsReporter> metricsReporters = new HashSet<>();
+    final Set<BookkeeperMetricsReporter> bookkeeperMetricsReporters = new HashSet<>();
     for (String reporterName : metricsReporterNames) {
-      metricsReporters.add(MetricsReporter.valueOf(reporterName.toUpperCase()));
+      bookkeeperMetricsReporters.add(BookkeeperMetricsReporter.valueOf(reporterName.toUpperCase()));
     }
 
-    for (MetricsReporter reporter : metricsReporters) {
+    for (BookkeeperMetricsReporter reporter : bookkeeperMetricsReporters) {
       switch (reporter) {
         case JMX:
           final JmxReporter jmxReporter = JmxReporter.forRegistry(metrics)

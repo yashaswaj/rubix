@@ -18,6 +18,8 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.qubole.rubix.common.metrics.BookKeeperMetrics;
+import com.qubole.rubix.common.metrics.CollectedMetric;
+import com.qubole.rubix.common.metrics.CustomMetricReporter;
 import com.qubole.rubix.spi.BookKeeperFactory;
 import com.qubole.rubix.spi.CacheConfig;
 import com.qubole.rubix.spi.CacheUtil;
@@ -268,6 +270,7 @@ public class LocalDataTransferServer extends Configured implements Tool
       catch (Exception e) {
         try {
           log.warn("Error in Local Data Transfer Server for client: " + localDataTransferClient.getRemoteAddress(), e);
+          CustomMetricReporter.getMetricsCollectorInstance(conf).addMetric(CollectedMetric.CACHING_EXCEPTION_WHILE_TRANSFERRING_DATA);
         }
         catch (IOException e1) {
           log.warn("Error in Local Data Transfer Server for client: ", e);
