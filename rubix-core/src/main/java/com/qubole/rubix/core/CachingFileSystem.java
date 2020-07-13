@@ -14,6 +14,7 @@ package com.qubole.rubix.core;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.qubole.rubix.common.metrics.CustomMetricsReporterProvider;
 import com.qubole.rubix.spi.BookKeeperFactory;
 import com.qubole.rubix.spi.CacheConfig;
 import com.qubole.rubix.spi.ClusterManager;
@@ -141,6 +142,7 @@ public abstract class CachingFileSystem<T extends FileSystem> extends FilterFile
   {
     conf = applyRubixSiteConfig(conf);
     super.initialize(getOriginalURI(uri), conf);
+    CustomMetricsReporterProvider.initialize(conf);
     if (clusterManager == null) {
       try {
         initializeClusterManager(conf, getClusterType());
