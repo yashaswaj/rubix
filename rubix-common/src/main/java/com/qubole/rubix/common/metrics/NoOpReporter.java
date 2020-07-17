@@ -14,8 +14,8 @@ package com.qubole.rubix.common.metrics;
 
 import java.io.IOException;
 
-public class DefaultReporter implements CustomMetricsReporter {
-    public DefaultReporter() {
+public class NoOpReporter implements CustomMetricsReporter {
+    public NoOpReporter() {
     }
 
     @Override

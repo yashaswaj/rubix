@@ -28,8 +28,13 @@ public class CustomMetricsReporterProvider {
 
   private static volatile AtomicReference<Boolean> reporterRunning = new AtomicReference<>();
 
-  private static volatile CustomMetricsReporter customMetricsReporter;
+  private CustomMetricsReporter customMetricsReporter;
+  private static volatile CustomMetricsReporterProvider customMetricsReporterProvider;
   private static final Integer lock = 0;
+
+  private CustomMetricsReporterProvider(CustomMetricsReporter customMetricsReporter) {
+      this.customMetricsReporter = customMetricsReporter;
+  }
 
   public static void initialize(Configuration configuration)
   {
@@ -37,13 +42,14 @@ public class CustomMetricsReporterProvider {
   }
 
   public static void initialize(Configuration configuration, Optional<MetricRegistry> metricRegistry) {
-    if (customMetricsReporter == null) {
+    if (customMetricsReporterProvider == null) {
       synchronized (lock) {
-        if (customMetricsReporter == null) {
+        if (customMetricsReporterProvider == null) {
           String className = CacheConfig.getRubixMetricCollectorImpl(configuration);
           // check if custom reporter is enabled: Check here for CFS metrics Reporter.
           boolean useCustomReporter = getMetricsReportors(configuration).contains(BookkeeperMetricsReporter.CUSTOM);
-          if (useCustomReporter && !"com.qubole.rubix.common.metrics.DefaultReporter".equals(className)) {
+          CustomMetricsReporter customMetricsReporter;
+          if (useCustomReporter && !"com.qubole.rubix.common.metrics.NoOpReporter".equals(className)) {
             try {
               Class collectorClass = Class.forName(className);
               log.info(String.format("Using class for metric reporting: %s", className));
@@ -51,11 +57,12 @@ public class CustomMetricsReporterProvider {
                       .newInstance(configuration, metricRegistry);
             } catch (Exception e) {
               log.warn("External Metric Reporter class: %s can not be initialized: ", e);
-              customMetricsReporter = new DefaultReporter();
+              customMetricsReporter = new NoOpReporter();
             }
           } else {
-            customMetricsReporter = new DefaultReporter();
+            customMetricsReporter = new NoOpReporter();
           }
+          customMetricsReporterProvider = new CustomMetricsReporterProvider(customMetricsReporter);
         }
       }
     }
@@ -66,15 +73,15 @@ public class CustomMetricsReporterProvider {
       synchronized (reporterRunning) {
         if (reporterRunning.get() == null) {
           try {
-            customMetricsReporter.start();
+            customMetricsReporterProvider.customMetricsReporter.start();
           } catch (Exception e) {
             log.warn("Exception in starting Custom reporter: ", e);
-            customMetricsReporter = new DefaultReporter();
+            customMetricsReporterProvider.customMetricsReporter = new NoOpReporter();
           }
           reporterRunning.set(true);
         }
       }
     }
-    return customMetricsReporter;
+    return customMetricsReporterProvider.customMetricsReporter;
   }
 }
